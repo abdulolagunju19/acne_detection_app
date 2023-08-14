@@ -1,3 +1,4 @@
+# Import required libraries
 import streamlit as st
 import cv2
 from PIL import Image
@@ -9,19 +10,23 @@ from keras.applications.mobilenet_v2 import preprocess_input
 from keras.utils import img_to_array
 
 try:
+    # Load Haar Cascade classifier for face detection
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml') 
 
 except Exception:
     st.write("Error loading cascade classifiers")
 
+# Function to detect acne and classify
 def detect(image):
     acne_image = image
     image = np.array(image.convert('RGB'))
     acne_image = np.array(acne_image.convert('RGB'))
 
+    # Detect faces in the image
     faces = face_cascade.detectMultiScale(image=image, scaleFactor=1.3, minNeighbors=5)
 
     for (x, y, w, h) in faces:
+        # Draw rectangle around detected faces
         cv2.rectangle(img=image, pt1=(x,y), pt2=(x + w, y + h), color=(255, 0, 0), thickness=2)
         roi = image[y:y+h, x:x+w]
 
@@ -31,18 +36,22 @@ def detect(image):
     acne_image = preprocess_input(acne_image)
     acne_image = np.expand_dims(acne_image, axis=0)
 
+    # Load the pre-trained model for acne detection
     model = load_model("facemodel.model")
     (acne, withoutAcne) = model.predict(acne_image)[0]
     label = "Acne" if acne > withoutAcne else "No Acne"
 
     return image, faces, label
 
+# About section
 def about():
     st.write("We developed this application to help people suffering with acne.")
 
+# Resources section
 def resources():
     st.write("In order to learn more about acne and computer vision, read this: https://link.springer.com/article/10.1007/s10489-022-03774-z.")
 
+# Contact section
 def contact():
     st.write("Contact me at olagunju@ualberta.ca!")
 
@@ -50,11 +59,13 @@ def main():
     st.title("Acne Detection App")
     st.write("**This will be performed using the Haar Cascade Classifiers.**")
 
+    # Sidebar navigation
     activities = ["Home", "About", "Resources", "Contact"]
     choice = st.sidebar.selectbox("Select a choice from", activities)
 
     if choice == "Home":
 
+        # Upload image and perform analysis
         image_face = st.file_uploader("Upload image", type=['jpeg', 'jpg', 'png', 'webp'])
 
         if image_face is not None:
